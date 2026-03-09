@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu - FusionBite</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header id="restaurantHeader"></header>
+        <div id="menuGrid" class="restaurants-grid"></div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="cart.js"></script>
+    <script>
+        // Logic to load specific restaurant items
+        const urlParams = new URLSearchParams(window.location.search);
+        const resId = urlParams.get('id');
+        const restaurant = window.RESTAURANTS_DATA.find(r => r.id == resId);
+        const items = window.MENU_ITEMS[resId];
+
+        if (restaurant) {
+            document.getElementById('restaurantHeader').innerHTML = `<h1>${restaurant.name}</h1>`;
+            document.getElementById('menuGrid').innerHTML = items.map(item => `
+                <div class="restaurant-card">
+                    <img src="${item.image}" style="width:100%; height:150px; object-fit:cover;">
+                    <div class="restaurant-info">
+                        <h4>${item.name}</h4>
+                        <p>₹${item.price}</p>
+                        <button class="btn-primary" onclick="window.cart.addItem(${resId}, '${restaurant.name}', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

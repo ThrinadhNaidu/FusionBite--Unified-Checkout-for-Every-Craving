@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - FusionBite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #FFFFFE;
+            --card: #FFFFFF;
+            --text-main: #2E2F3E;
+            --text-muted: #A7A9BE;
+            --primary: #F25F4C;
+            --border: #E8E8ED;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .profile-card {
+            background: var(--card);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+            text-align: left;
+        }
+
+        h2 { text-align: center; margin-bottom: 2rem; color: var(--text-main); }
+
+        .info-group {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .value {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .btn-home {
+            display: block;
+            width: fit-content;
+            margin: 2rem auto 0;
+            padding: 0.75rem 2rem;
+            border: 2px solid var(--border);
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-home:hover { border-color: var(--primary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <h2>User Profile</h2>
+        <div class="info-group">
+            <span class="label">Full Name</span>
+            <span class="value" id="userName">---</span>
+        </div>
+        <div class="info-group">
+            <span class="label">Email Address</span>
+            <span class="value" id="userEmail">---</span>
+        </div>
+        <div class="info-group">
+            <span class="label">Loyalty Points</span>
+            <span class="value">⭐ <span id="userPoints">0</span></span>
+        </div>
+        <button class="btn-home" onclick="window.location.href='index.html'">Back to Home</button>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Use the Auth module to get data
+            const user = window.auth.getCurrentUser(); 
+            
+            if (user) {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userPoints').textContent = user.loyaltyPoints || 100;
+            } else {
+                // If not logged in, force to login page
+                window.location.href = 'login.html'; 
+            }
+        });
+    </script>
+</body>
+</html>

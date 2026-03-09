@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - FusionBite</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .cart-container { padding: 4rem 0; max-width: 900px; margin: 0 auto; }
+        .cart-grid { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
+        .restaurant-group { background: var(--card); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px var(--shadow); }
+        .res-title { color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .cart-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border); }
+        .cart-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .item-info { flex: 1; }
+        .qty-controls { display: flex; align-items: center; gap: 0.75rem; }
+        .qty-btn { background: var(--border); border: none; width: 25px; height: 25px; border-radius: 4px; cursor: pointer; }
+        .summary-card { background: var(--card); padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 12px var(--shadow); position: sticky; top: 100px; }
+        .summary-line { display: flex; justify-content: space-between; margin-bottom: 0.75rem; }
+        .total-line { font-weight: 700; font-size: 1.2rem; border-top: 2px solid var(--border); padding-top: 1rem; margin-top: 1rem; color: var(--primary); }
+        .checkout-btn { width: 100%; padding: 1rem; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
+        .empty-cart { text-align: center; padding: 5rem 0; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </nav>
+
+    <div class="container cart-container">
+        <h1>Review Your Order</h1>
+        
+        <div id="cartContent" class="cart-grid">
+            <div id="itemsList"></div>
+
+            <div id="orderSummary" class="summary-card">
+                <h3>Order Summary</h3>
+                <div id="summaryDetails"></div>
+                <button class="checkout-btn" onclick="processCheckout()">Proceed to Checkout</button>
+            </div>
+        </div>
+
+        <div id="emptyState" class="empty-cart" style="display: none;">
+            <i class="fas fa-shopping-basket" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <p>Your cart is empty.</p>
+            <button class="btn-primary" onclick="window.location.href='index.html'">Explore Restaurants</button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="auth.js"></script>
+    <script src="cart.js"></script>
+    <script>
+        function renderCart() {
+            const groupedItems = window.cart.getItemsByRestaurant();
+            const itemsList = document.getElementById('itemsList');
+            const summaryDetails = document.getElementById('summaryDetails');
+            const cartContent = document.getElementById('cartContent');
+            const emptyState = document.getElementById('emptyState');
+
+            if (window.cart.items.length === 0) {
+                cartContent.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            // Render Items grouped by Restaurant
+            itemsList.innerHTML = Object.keys(groupedItems).map(resId => {
+                const group = groupedItems[resId];
+                return `
+                    <div class="restaurant-group">
+                        <h3 class="res-title">${group.restaurantName}</h3>
+                        ${group.items.map(item => `
+                            <div class="cart-item">
+                                <img src="${item.image}" alt="${item.name}">
+                                <div class="item-info">
+                                    <h4>${item.name}</h4>
+                                    <p>₹${item.price}</p>
+                                </div>
+                                <div class="qty-controls">
+                                    <button class="qty-btn" onclick="updateQty(${resId}, ${item.itemId}, -1)">-</button>
+                                    <span>${item.quantity}</span>
+                                    <button class="qty-btn" onclick="updateQty(${resId}, ${item.itemId}, 1)">+</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+
+            // Render Summary Totals
+            summaryDetails.innerHTML = `
+                <div class="summary-line"><span>Subtotal</span> <span>₹${window.cart.getSubtotal()}</span></div>
+                <div class="summary-line"><span>Delivery Fee</span> <span>₹${window.cart.getDeliveryFee()}</span></div>
+                <div class="summary-line"><span>Taxes (5%)</span> <span>₹${window.cart.getTaxes()}</span></div>
+                <div class="total-line"><span>Total</span> <span>₹${window.cart.getTotal()}</span></div>
+            `;
+        }
+
+        function updateQty(resId, itemId, change) {
+            const item = window.cart.items.find(i => i.restaurantId === resId && i.itemId === itemId);
+            if (item) {
+                window.cart.updateQuantity(resId, itemId, item.quantity + change);
+                renderCart();
+            }
+        }
+
+        function processCheckout() {
+    if (!window.auth.isLoggedIn()) {
+        window.location.href = 'login.html?redirect=cart.html';
+        return;
+    }
+
+    const cartItems = window.cart.items;
+    if (cartItems.length === 0) return alert("Your cart is empty!");
+
+    // --- NEW LOGIC TO SAVE ORDER ---
+    const existingOrders = JSON.parse(localStorage.getItem('fusionbite_orders')) || [];
+    const newOrder = {
+        id: Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toLocaleString(),
+        items: [...cartItems],
+        total: window.cart.getTotal(),
+        status: 'Confirmed'
+    };
+
+    existingOrders.unshift(newOrder); // Add to the top of the list
+    localStorage.setItem('fusionbite_orders', JSON.stringify(existingOrders));
+    // -------------------------------
+
+    alert('Order Placed Successfully!');
+    window.cart.clearCart();
+    window.location.href = 'orders.html'; // Redirect to orders to see the update
+}
+
+        document.addEventListener('DOMContentLoaded', renderCart);
+    </script>
+</body>
+</html>

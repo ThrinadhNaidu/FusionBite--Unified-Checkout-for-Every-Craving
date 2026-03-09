@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History - FusionBite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .orders-page { padding: 3rem 0; background: #f9f9f9; min-height: 90vh; }
+        .orders-container { max-width: 800px; margin: 0 auto; }
+        .order-card { 
+            background: white; border-radius: 16px; padding: 1.5rem; 
+            margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
+        .order-id { font-weight: 700; color: #F25F4C; }
+        .order-date { font-size: 0.85rem; color: #888; }
+        .status-badge { background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .order-item-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #444; }
+        .order-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .total-amount { font-size: 1.2rem; font-weight: 800; color: #2E2F3E; }
+        .empty-orders { text-align: center; padding: 4rem 2rem; background: white; border-radius: 16px; }
+        .empty-orders i { font-size: 3rem; color: #ddd; margin-bottom: 1rem; display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo"><i class="fas fa-utensils"></i> FusionBite</a>
+            <div class="nav-right">
+                <a href="index.html" class="btn-secondary">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="orders-page">
+        <div class="container">
+            <h1 style="margin-bottom: 2rem; text-align: center;">Your Orders</h1>
+            <div class="orders-container" id="ordersList">
+                </div>
+        </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="orders.js"></script>
+</body>
+</html>

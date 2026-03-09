@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FusionBite - Order from Multiple Restaurants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" data-testid="main-navbar">
+        <div class="container nav-container">
+            <div class="nav-left">
+                <a href="/" class="logo" data-testid="logo-link">
+                    <i class="fas fa-utensils"></i>
+                    <span>FusionBite</span>
+                </a>
+            </div>
+            <div class="nav-center">
+                <div class="search-bar" data-testid="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search for restaurants, cuisines, or dishes...">
+                </div>
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle" data-testid="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+
+                <div class="notification-wrapper" style="position: relative; margin-right: 10px;">
+    <button class="theme-toggle" id="notificationBtn" data-testid="notification-button">
+        <i class="fas fa-bell"></i>
+        <span id="notifCount" class="cart-count" style="display:none; background:var(--primary); top: -5px; right: -5px;">0</span>
+    </button>
+    
+    <div id="notifDropdown" class="dropdown-menu" style="width: 280px; padding: 1rem; right: 0;">
+        <h4 style="margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 5px;">Live Updates</h4>
+        <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+            <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 10px;">No new updates</p>
+        </div>
+    </div>
+</div>
+                <div class="user-menu" id="userMenu" data-testid="user-menu">
+                    <button class="btn-secondary" id="loginBtn" data-testid="login-button">Login</button>
+                    <div class="user-dropdown" id="userDropdown" style="display: none;">
+                        <button class="user-avatar" id="userAvatar" data-testid="user-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </button>
+
+
+
+                        
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="profile.html" data-testid="profile-link"><i class="fas fa-user"></i> Profile</a>
+                            <a href="orders.html" data-testid="orders-link"><i class="fas fa-receipt"></i> Orders</a>
+                            <a href="#" id="logoutBtn" data-testid="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+                <button class="cart-btn" id="cartBtn" data-testid="cart-button">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount" data-testid="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" data-testid="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title" data-testid="hero-title">Unified <span class="highlight">Checkout for</span><br>Every Craving</h1>
+            <p class="hero-subtitle" data-testid="hero-subtitle">Different Kitchens. One Cart. Zero Hassle......</p>
+            <button class="btn-primary btn-large" data-testid="explore-button" onclick="document.getElementById('restaurants').scrollIntoView({behavior: 'smooth'})">Explore Restaurants</button>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card" data-testid="stat-restaurants">
+                <h3>200+</h3>
+                <p>Restaurants</p>
+            </div>
+            <div class="stat-card" data-testid="stat-dishes">
+                <h3>5000+</h3>
+                <p>Dishes</p>
+            </div>
+            <div class="stat-card" data-testid="stat-users">
+                <h3>50K+</h3>
+                <p>Happy Users</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section" data-testid="filters-section">
+        <div class="container">
+            <div class="filters">
+                <button class="filter-chip active" data-filter="all" data-testid="filter-all">All</button>
+                <button class="filter-chip" data-filter="italian" data-testid="filter-italian"><i class="fas fa-pizza-slice"></i> Italian</button>
+                <button class="filter-chip" data-filter="chinese" data-testid="filter-chinese"><i class="fas fa-bowl-rice"></i> Chinese</button>
+                <button class="filter-chip" data-filter="indian" data-testid="filter-indian"><i class="fas fa-pepper-hot"></i> Indian</button>
+                <button class="filter-chip" data-filter="mexican" data-testid="filter-mexican"><i class="fas fa-taco"></i> Mexican</button>
+                <button class="filter-chip" data-filter="dessert" data-testid="filter-dessert"><i class="fas fa-ice-cream"></i> Dessert</button>
+            </div>
+            <div class="sort-options">
+                <select id="sortSelect" data-testid="sort-select">
+                    <option value="rating">Highest Rated</option>
+                    <option value="delivery">Fastest Delivery</option>
+                    <option value="popular">Most Popular</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Restaurants Grid -->
+    <section class="restaurants-section" id="restaurants" data-testid="restaurants-section">
+        <div class="container">
+            <h2 class="section-title" data-testid="section-title">Top Restaurants Near You</h2>
+            <div class="restaurants-grid" id="restaurantsGrid" data-testid="restaurants-grid">
+                <!-- Restaurants will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Cart Button (Mobile) -->
+    <div class="floating-cart" id="floatingCart" data-testid="floating-cart" style="display: none;">
+        <button class="floating-cart-btn" data-testid="floating-cart-button">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="floatingCartCount" data-testid="floating-cart-count">0</span> items
+            <span class="cart-total" id="floatingCartTotal" data-testid="floating-cart-total">₹0</span>
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" data-testid="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>FusionBite</h3>
+                    <p>Order from multiple restaurants in one go.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-section">
+                    <h4>For Partners</h4>
+                    <a href="/restaurant-admin.html">Restaurant Partner</a>
+                    <a href="#">Delivery Partner</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <a href="#">Terms & Conditions</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+            </div>
+            <a href="orders.html" data-testid="orders-link">
+    <i class="fas fa-receipt"></i> Orders
+</a>
+            <div class="footer-bottom">
+                <p>&copy; 2024 FusionBite. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="auth.js"></script>
+    <script src="cart.js"></script>
+    <script src="theme.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

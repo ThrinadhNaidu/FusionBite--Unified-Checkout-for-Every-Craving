@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FusionBite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #F25F4C;
+            --background: #FFFFFE;
+            --card: #FFFFFF;
+            --text-main: #2E2F3E;
+            --border: #E8E8ED;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .auth-container {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            font-family: 'Manrope', sans-serif;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .toggle-text span {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div id="loginSection">
+        <h2>Login to FusionBite</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-auth">Login</button>
+        </form>
+        <p class="toggle-text">Don't have an account? <span onclick="toggleAuth()">Register</span></p>
+    </div>
+
+    <div id="registerSection" class="hidden">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="email@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-auth">Register</button>
+        </form>
+        <p class="toggle-text">Already have an account? <span onclick="toggleAuth()">Login</span></p>
+    </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+    const loginSection = document.getElementById('loginSection');
+    const registerSection = document.getElementById('registerSection');
+
+    function toggleAuth() {
+        loginSection.classList.toggle('hidden');
+        registerSection.classList.toggle('hidden');
+    }
+
+    // Handle Login
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPassword').value;
+        
+        const result = window.auth.login(email, pass);
+        if (result.success) {
+            window.location.href = 'index.html'; // Redirect to home
+        } else {
+            alert(result.message);
+        }
+    });
+
+    // Handle Registration
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const pass = document.getElementById('regPassword').value;
+
+        const result = window.auth.register(email, pass, name);
+        if (result.success) {
+            alert('Registration Successful!');
+            window.location.href = 'index.html';
+        } else {
+            alert(result.message);
+        }
+    });
+</script>
+
+</body>
+</html>

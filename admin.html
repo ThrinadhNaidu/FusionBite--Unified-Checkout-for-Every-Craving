@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FusionBite - Admin Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="data.js"></script> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hidden { display: none; }
+        .modal { background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .tab-active { border-bottom: 4px solid #f97316; color: #f97316; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="login-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-96 border-t-4 border-orange-500">
+            <h1 class="text-2xl font-bold mb-6 text-center">FusionBite Admin</h1>
+            <input id="phone-input" type="tel" placeholder="Phone Number" class="w-full p-3 border rounded mb-4 focus:outline-orange-500">
+            <button onclick="showAdmin()" class="w-full bg-orange-500 text-white p-3 rounded-lg font-bold hover:bg-orange-600">Login to Dashboard</button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" class="hidden p-4 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b pb-4">
+            <h2 class="text-3xl font-extrabold text-gray-800">FusionBite Central Command</h2>
+            <nav class="flex gap-6 font-bold text-gray-500">
+                <button onclick="switchTab('restaurants')" id="btn-res" class="pb-2 tab-active">Inventory</button>
+                <button onclick="switchTab('orders')" id="btn-ord" class="pb-2 hover:text-orange-500">Live Orders</button>
+                <button onclick="location.reload()" class="pb-2 text-red-500">Logout</button>
+            </nav>
+        </div>
+
+        <div id="tab-restaurants" class="admin-tab">
+            <div class="bg-white p-6 rounded-xl shadow-sm mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Restaurant Name</label>
+                    <input id="res-name" class="w-full p-2 border rounded mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Cuisine Type</label>
+                    <input id="res-cuisine" class="w-full p-2 border rounded mt-1" placeholder="e.g. Chinese">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Image URL</label>
+                    <input id="res-image" class="w-full p-2 border rounded mt-1" placeholder="https://...">
+                </div>
+                <button onclick="addRestaurant()" class="bg-orange-500 text-white p-2 rounded-lg font-bold">Add Restaurant</button>
+            </div>
+            <div id="admin-res-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="tab-orders" class="admin-tab hidden">
+            <h3 class="text-xl font-bold mb-4">Active Orders</h3>
+            <div id="live-orders-list" class="space-y-4">
+                <p class="text-gray-400 italic">Checking for new orders...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-modal" class="hidden modal">
+        <div class="bg-white p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 id="modal-res-name" class="text-2xl font-bold">Manage Menu</h3>
+                    <p class="text-gray-500">Add or remove dishes from this outlet</p>
+                </div>
+                <button onclick="closeMenu()" class="text-2xl text-gray-400">&times;</button>
+            </div>
+
+            <div class="bg-orange-50 p-4 rounded-xl mb-6 grid grid-cols-2 gap-3">
+                <input id="item-name" placeholder="Dish Name" class="p-2 border rounded col-span-2">
+                <input id="item-price" type="number" placeholder="Price (₹)" class="p-2 border rounded">
+                <select id="item-type" class="p-2 border rounded">
+                    <option value="veg">Veg</option>
+                    <option value="non-veg">Non-Veg</option>
+                </select>
+                <button onclick="addItem()" class="bg-black text-white p-2 rounded col-span-2 font-bold hover:bg-gray-800">Add Item to Menu</button>
+            </div>
+
+            <div id="menu-items-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let restaurants = window.RESTAURANTS_DATA;
+        let menuData = window.MENU_ITEMS;
+        let activeResId = null;
+
+        function showAdmin() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            renderRestaurants();
+            renderLiveOrders();
+        }
+
+        // --- TAB LOGIC ---
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+            
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const btnId = tab === 'restaurants' ? 'btn-res' : 'btn-ord';
+            document.getElementById(btnId).classList.add('tab-active');
+            
+            if (tab === 'orders') renderLiveOrders();
+        }
+
+        // --- LIVE ORDERS LOGIC (Real-time Messaging) ---
+        function renderLiveOrders() {
+            const orders = JSON.parse(localStorage.getItem('fusionbite_orders')) || [];
+            const list = document.getElementById('live-orders-list');
+            
+            list.innerHTML = orders.length ? orders.map(order => `
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-8 ${getStatusBorder(order.status)} flex justify-between items-center">
+                    <div>
+                        <div class="font-black text-orange-500 uppercase tracking-tighter">ORDER #${order.id}</div>
+                        <div class="text-sm font-bold text-gray-800">${order.items.map(i => i.name).join(', ')}</div>
+                        <div class="mt-2 text-[10px] font-black bg-gray-100 px-2 py-1 rounded inline-block uppercase text-gray-600 border border-gray-200">
+                           <i class="fas fa-info-circle mr-1"></i> ${order.status}
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="updateStatus(${order.id}, 'Preparing')" class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl text-xs font-black uppercase border border-amber-200 hover:bg-amber-200 transition">Prepare</button>
+                        <button onclick="updateStatus(${order.id}, 'Ready')" class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-xs font-black uppercase border border-emerald-200 hover:bg-emerald-200 transition">Ready</button>
+                        <button onclick="updateStatus(${order.id}, 'Delivered')" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-xs font-black uppercase border border-blue-200 hover:bg-blue-200 transition">Delivered</button>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center py-10"><p class="text-gray-400 italic">No active orders at the moment.</p></div>';
+        }
+
+        function updateStatus(id, status) {
+            let orders = JSON.parse(localStorage.getItem('fusionbite_orders')) || [];
+            const idx = orders.findIndex(o => o.id === id);
+            if (idx !== -1) {
+                orders[idx].status = status;
+                orders[idx].hasNotification = true; // Triggers the Banner on User index.html
+                localStorage.setItem('fusionbite_orders', JSON.stringify(orders));
+                renderLiveOrders();
+            }
+        }
+
+        function getStatusBorder(status) {
+            if(status === 'Confirmed') return 'border-blue-400';
+            if(status === 'Preparing') return 'border-amber-400';
+            if(status === 'Ready') return 'border-emerald-400';
+            if(status === 'Delivered') return 'border-blue-600';
+            return 'border-gray-200';
+        }
+
+        // --- RESTAURANT LOGIC ---
+        function renderRestaurants() {
+            const list = document.getElementById('admin-res-list');
+            list.innerHTML = window.RESTAURANTS_DATA.map(res => `
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition">
+                    <img src="${res.image}" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h4 class="text-xl font-bold">${res.name}</h4>
+                        <p class="text-gray-500 mb-4">${res.cuisine}</p>
+                        <div class="flex gap-2">
+                            <button onclick="openMenu(${res.id})" class="flex-1 bg-blue-100 text-blue-700 p-2 rounded-lg font-bold text-sm">Manage Menu</button>
+                            <button onclick="deleteRes(${res.id})" class="bg-red-50 text-red-500 p-2 rounded-lg text-sm italic">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addRestaurant() {
+            const name = document.getElementById('res-name').value;
+            const cuisine = document.getElementById('res-cuisine').value;
+            const image = document.getElementById('res-image').value || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400';
+            
+            if(name && cuisine) {
+                const newId = Date.now();
+                const newRes = { id: newId, name, cuisine, image, rating: 4.0, deliveryTime: "20-30 min", distance: "1.0 km" };
+                window.RESTAURANTS_DATA.push(newRes);
+                window.MENU_ITEMS[newId] = []; 
+                window.syncToStorage(); 
+                renderRestaurants();
+                document.getElementById('res-name').value = '';
+                document.getElementById('res-cuisine').value = '';
+                document.getElementById('res-image').value = '';
+            }
+        }
+
+        function deleteRes(id) {
+            window.RESTAURANTS_DATA = window.RESTAURANTS_DATA.filter(r => r.id !== id);
+            delete window.MENU_ITEMS[id];
+            window.syncToStorage();
+            renderRestaurants();
+        }
+
+        // --- MENU LOGIC ---
+        function openMenu(resId) {
+            activeResId = resId;
+            const res = window.RESTAURANTS_DATA.find(r => r.id === resId);
+            document.getElementById('modal-res-name').innerText = res.name;
+            document.getElementById('menu-modal').classList.remove('hidden');
+            renderMenuItems();
+        }
+
+        function closeMenu() { document.getElementById('menu-modal').classList.add('hidden'); }
+
+        function renderMenuItems() {
+            const list = document.getElementById('menu-items-list');
+            const items = window.MENU_ITEMS[activeResId] || [];
+            if(items.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-400 py-4">No items in menu yet.</p>`;
+                return;
+            }
+            list.innerHTML = items.map((item, index) => `
+                <div class="flex justify-between items-center p-3 border-b hover:bg-gray-50">
+                    <div>
+                        <span class="${item.type === 'veg' ? 'text-green-600' : 'text-red-600'} text-xs font-bold uppercase">● ${item.type}</span>
+                        <p class="font-bold text-gray-800">${item.name}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold">₹${item.price}</span>
+                        <button onclick="deleteItem(${index})" class="text-red-400 hover:text-red-600 font-bold">&times;</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addItem() {
+            const name = document.getElementById('item-name').value;
+            const price = document.getElementById('item-price').value;
+            const type = document.getElementById('item-type').value;
+            if(name && price) {
+                if(!window.MENU_ITEMS[activeResId]) window.MENU_ITEMS[activeResId] = [];
+                window.MENU_ITEMS[activeResId].push({ id: Date.now(), name, price: parseInt(price), type, image: 'https://via.placeholder.com/150' });
+                window.syncToStorage(); renderMenuItems();
+                document.getElementById('item-name').value = '';
+                document.getElementById('item-price').value = '';
+            }
+        }
+
+        function deleteItem(index) {
+            window.MENU_ITEMS[activeResId].splice(index, 1);
+            window.syncToStorage(); renderMenuItems();
+        }
+
+        // Auto-Refresh for Live Orders every 5 seconds
+        setInterval(() => {
+            if (!document.getElementById('tab-orders').classList.contains('hidden')) renderLiveOrders();
+        }, 5000);
+    </script>
+</body>
+</html>
